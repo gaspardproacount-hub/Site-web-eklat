@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eklat — Origine · Luminaire sans fil artisanal</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+/* ============================================================
+   TOKENS
+============================================================ */
+:root {
+  --cream: #F3EDE5;
+  --warm:  #C4A882;
+  --dark:  #18100A;
+  --brown: #3D2B1E;
+  --muted: #7A6E65;
+  --light: #FAF8F4;
+  --stone: #E5DDD4;
+  --gold:  #B8955A;
+  --ink:   #2C1F14;
+  --nav-h: 56px;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink);
+  background: var(--cream);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   NAV
+============================================================ */
+.site-nav {
+  position: sticky;
+  top: 0; z-index: 200;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  background: rgba(243,237,229,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 0.5px solid var(--stone);
+  padding: 0 2rem;
+  gap: 1rem;
+  transition: transform 0.3s ease, background 0.3s;
+}
+.site-nav.nav-up { transform: translateY(-100%); }
+.logo {
+  font-size: 18px; font-weight: 400; letter-spacing: -0.4px;
+  color: var(--dark); cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; gap: 5px;
+  text-decoration: none;
+}
+.logo-star { color: var(--warm); font-size: 14px; }
+.nav-tabs {
+  display: flex; list-style: none; flex: 1;
+  justify-content: center;
+  overflow-x: auto; scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab {
+  flex-shrink: 0;
+  padding: 0 1.1rem; height: var(--nav-h);
+  display: flex; align-items: center;
+  font-size: 10.5px; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--muted); cursor: pointer;
+  border: none; background: none;
+  font-family: 'DM Sans', sans-serif;
+  position: relative; transition: color 0.2s;
+  white-space: nowrap;
+}
+.nav-tab::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 1.1rem; right: 1.1rem; height: 1.5px;
+  background: var(--dark);
+  transform: scaleX(0); transition: transform 0.25s;
+}
+.nav-tab:hover { color: var(--dark); }
+.nav-tab.active { color: var(--dark); font-weight: 500; }
+.nav-tab.active::after { transform: scaleX(1); }
+.nav-right { flex-shrink: 0; margin-left: auto; display: flex; align-items: center; gap: 1rem; }
+.nav-rating { font-size: 11px; color: var(--muted); letter-spacing: 0.5px; white-space: nowrap; }
+.nav-rating strong { color: var(--gold); }
+.nav-cta {
+  background: var(--dark); color: var(--cream);
+  padding: 9px 20px; font-size: 10.5px; letter-spacing: 1.8px;
+  text-transform: uppercase; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: background 0.2s;
+  white-space: nowrap;
+}
+.nav-cta:hover { background: var(--brown); }
+
+/* ============================================================
+   PAGE SYSTEM
+============================================================ */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Page transition overlay */
+.page-veil {
+  position: fixed; inset: 0;
+  background: var(--cream);
+  z-index: 500;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+.page-veil.show { opacity: 1; }
+
+/* ============================================================
+   REVEAL ANIMATIONS
+============================================================ */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ============================================================
+   ACCUEIL — PHOTO PLEIN ÉCRAN
+============================================================ */
+#page-accueil { background: var(--dark); }
+#page-accueil.active { display: block; }
+
+.home-screen {
+  position: relative;
+  height: calc(100vh - var(--nav-h));
+  overflow: hidden;
+}
+.home-bg {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: center 55%;
+  display: block;
+  transition: filter 1s ease;
+}
+.home-overlay {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(to top,  rgba(18,10,4,0.88) 0%, rgba(18,10,4,0.3) 35%, transparent 62%),
+    linear-gradient(to right, rgba(18,10,4,0.25) 0%, transparent 60%);
+  pointer-events: none; z-index: 2;
+}
+.home-caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 0 3.5rem 3.5rem;
+  z-index: 5;
+  pointer-events: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+}
+.home-caption-left { }
+.home-eyebrow {
+  font-size: 9px; letter-spacing: 3.5px; text-transform: uppercase;
+  color: var(--warm); margin-bottom: 0.8rem; display: block;
+}
+.home-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(36px, 5.5vw, 68px);
+  font-weight: 300; color: var(--cream);
+  line-height: 1.02; margin-bottom: 2.2rem;
+}
+.home-title em { font-style: italic; color: var(--warm); }
+.home-actions {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  pointer-events: all;
+}
+.home-caption-right {
+  flex-shrink: 0;
+  text-align: right;
+  pointer-events: all;
+  padding-bottom: 0.4rem;
+}
+.home-caption-right .home-colors-label {
+  font-size: 9px; letter-spacing: 3px; text-transform: uppercase;
+  color: rgba(243,237,229,0.35); margin-bottom: 0.5rem; display: block;
+}
+.home-caption-right .home-colors-count {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 42px; font-weight: 300; line-height: 1;
+  color: rgba(243,237,229,0.9);
+}
+.home-caption-right .home-colors-sub {
+  font-size: 10px; letter-spacing: 1.5px; color: rgba(243,237,229,0.35);
+  text-transform: uppercase; margin-top: 3px;
+}
+
+/* ============================================================
+   FEATURES STRIP
+============================================================ */
+.features-strip {
+  display: flex; background: rgba(24,16,9,0.96); overflow-x: auto;
+  scrollbar-width: none; border-top: 0.5px solid rgba(196,168,130,0.08);
+}
+.features-strip::-webkit-scrollbar { display: none; }
+.feature-item {
+  flex: 1; min-width: 130px;
+  padding: 1.2rem 1rem; text-align: center;
+  border-right: 0.5px solid rgba(201,185,154,0.1);
+  color: rgba(243,237,229,0.35); font-size: 11px;
+}
+.feature-item:last-child { border-right: none; }
+.feature-item strong {
+  display: block; color: rgba(243,237,229,0.7);
+  font-size: 12px; margin-bottom: 2px; font-weight: 400;
+}
+
+.btn-primary {
+  background: var(--cream); color: var(--dark);
+  padding: 14px 28px; font-size: 10.5px; letter-spacing: 2px;
+  text-transform: uppercase; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: background 0.2s, color 0.2s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  text-align: center; text-decoration: none;
+}
+.btn-primary:hover { background: var(--warm); color: var(--dark); }
+.btn-outline {
+  background: transparent; color: rgba(243,237,229,0.6);
+  padding: 14px 28px; font-size: 10.5px; letter-spacing: 2px;
+  text-transform: uppercase; border: 0.5px solid rgba(243,237,229,0.2);
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s; display: inline-block; text-align: center;
+}
+.btn-outline:hover { border-color: var(--cream); color: var(--cream); }
+.btn-dark {
+  background: var(--dark); color: var(--cream);
+  padding: 14px 28px; font-size: 10.5px; letter-spacing: 2px;
+  text-transform: uppercase; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: background 0.2s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-dark:hover { background: var(--brown); }
+.btn-outline-dark {
+  background: transparent; color: var(--ink);
+  padding: 14px 28px; font-size: 10.5px; letter-spacing: 2px;
+  text-transform: uppercase; border: 0.5px solid rgba(44,31,20,0.25);
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s; display: inline-block; text-align: center;
+}
+.btn-outline-dark:hover { background: var(--dark); color: var(--cream); border-color: var(--dark); }
+/* ============================================================
+   SHARED TYPOGRAPHY
+============================================================ */
+.section-label {
+  font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--warm); display: block;
+}
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(32px, 4.5vw, 52px);
+  font-weight: 300; line-height: 1.08;
+}
+.section-title em { font-style: italic; }
+
+/* ============================================================
+   PAGE LAMPE — STICKY PRODUCT LAYOUT
+============================================================ */
+#page-lampe { background: var(--cream); }
+.product-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - var(--nav-h));
+  align-items: start;
+}
+.product-img-col {
+  position: sticky;
+  top: var(--nav-h);
+  height: calc(100vh - var(--nav-h));
+  display: flex; align-items: center; justify-content: center;
+  background: #EDE7DC;
+  overflow: hidden; cursor: pointer;
+}
+.product-img-col img {
+  width: 80%;
+  max-width: 420px;
+  object-fit: contain;
+  display: block;
+  transition: filter 0.7s ease;
+  position: relative; z-index: 2;
+}
+.p-glow-outer {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 38%, rgba(255,220,120,0.5) 0%, rgba(255,180,60,0.18) 40%, transparent 70%);
+  z-index: 1; transition: opacity 0.7s;
+  pointer-events: none;
+}
+.p-glow-floor {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 65%; height: 30%;
+  background: radial-gradient(ellipse at center bottom, rgba(255,200,80,0.4) 0%, transparent 70%);
+  z-index: 1; transition: opacity 0.7s; pointer-events: none;
+}
+.p-dark-overlay {
+  position: absolute; inset: 0;
+  background: rgba(20,16,12,0); z-index: 3; transition: background 0.7s;
+  pointer-events: none;
+}
+.p-hint {
+  position: absolute; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: rgba(243,237,229,0.85); color: var(--ink);
+  font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 5px 16px; border-radius: 20px;
+  z-index: 6; white-space: nowrap; pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+
+.product-info-col {
+  padding: 4rem 3.5rem 4rem 3rem;
+  border-left: 0.5px solid var(--stone);
+}
+.product-info-col .product-rating {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 1.6rem;
+}
+.product-rating .stars { color: var(--gold); font-size: 12px; letter-spacing: 2px; }
+.product-rating .rating-text { font-size: 11.5px; color: var(--muted); cursor: pointer; }
+.product-rating .rating-text:hover { color: var(--dark); text-decoration: underline; }
+
+.product-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 46px; font-weight: 300; line-height: 1.0;
+  margin-bottom: 0.3rem;
+}
+.product-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px; font-style: italic;
+  color: var(--warm); margin-bottom: 1.8rem;
+}
+.product-price-row {
+  margin-bottom: 2rem;
+  display: flex; align-items: center; gap: 1rem;
+}
+.product-price-label {
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted);
+}
+.product-price-tbd {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 16px; font-style: italic; color: var(--muted);
+}
+.product-short-desc {
+  font-size: 13.5px; color: var(--muted); line-height: 1.85;
+  margin-bottom: 2rem; border-top: 0.5px solid var(--stone);
+  padding-top: 1.8rem;
+}
+
+.product-key-specs {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  border: 0.5px solid var(--stone);
+  border-radius: 4px; overflow: hidden;
+  margin-bottom: 2rem;
+}
+.key-spec {
+  padding: 1rem 0.9rem;
+  border-right: 0.5px solid var(--stone);
+  text-align: center;
+}
+.key-spec:last-child { border-right: none; }
+.key-spec .ks-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px; font-weight: 300; color: var(--dark);
+  line-height: 1;
+}
+.key-spec .ks-label {
+  font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--warm); margin-top: 4px;
+}
+
+.product-cta-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.6rem; }
+.btn-buy {
+  width: 100%; background: var(--dark); color: var(--cream);
+  padding: 16px; font-size: 10.5px; letter-spacing: 2.5px;
+  text-transform: uppercase; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.2s;
+}
+.btn-buy:hover { background: var(--brown); }
+.product-guarantees {
+  display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+  padding: 0.9rem 0; border-top: 0.5px solid var(--stone);
+  border-bottom: 0.5px solid var(--stone); margin-bottom: 1.4rem;
+}
+.guarantee-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11.5px; color: var(--muted);
+  padding: 0.2rem 0.8rem 0.2rem 0;
+}
+.guarantee-sep { width: 0.5px; height: 12px; background: var(--stone); margin-right: 0.8rem; }
+.secure-note {
+  font-size: 11px; color: rgba(122,110,101,0.6);
+  text-align: center; letter-spacing: 0.5px;
+}
+
+/* ============================================================
+   PRODUCT — EXTENDED SECTIONS (below hero)
+============================================================ */
+.product-extended { padding: 5rem 3.5rem 5rem 3rem; border-top: 0.5px solid var(--stone); }
+
+.full-specs-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  border: 0.5px solid var(--stone); border-radius: 4px;
+  overflow: hidden; margin-top: 2rem; margin-bottom: 3.5rem;
+}
+.spec-row {
+  padding: 0.9rem 1.1rem;
+  border-right: 0.5px solid var(--stone);
+  border-bottom: 0.5px solid var(--stone);
+  background: var(--cream);
+}
+.spec-row:nth-child(even) { border-right: none; }
+.spec-row.full { grid-column: 1/-1; border-right: none; background: rgba(196,168,130,0.07); }
+.spec-row:last-child, .spec-row.full:last-child { border-bottom: none; }
+.spec-label { font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--warm); margin-bottom: 3px; }
+.spec-val { font-size: 13px; font-weight: 500; color: var(--dark); }
+
+/* FAQ */
+.faq-list { margin-top: 2rem; margin-bottom: 3.5rem; }
+.faq-item {
+  border-bottom: 0.5px solid var(--stone);
+}
+.faq-item:first-child { border-top: 0.5px solid var(--stone); }
+.faq-q {
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.2rem 0;
+  background: none; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500; color: var(--dark);
+  text-align: left;
+}
+.faq-icon {
+  font-size: 22px; color: var(--warm); flex-shrink: 0; margin-left: 1rem;
+  transition: transform 0.25s;
+  font-weight: 300;
+}
+.faq-item.open .faq-icon { transform: rotate(45deg); }
+.faq-a {
+  display: none;
+  padding-bottom: 1.2rem;
+  font-size: 13.5px; color: var(--muted); line-height: 1.8;
+}
+.faq-item.open .faq-a { display: block; }
+
+/* Mini reviews on product page */
+.mini-reviews-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.2rem; margin-top: 2rem;
+}
+.mini-review {
+  background: var(--light);
+  border: 0.5px solid var(--stone);
+  border-radius: 4px;
+  padding: 1.4rem;
+}
+.mini-review .stars { color: var(--gold); font-size: 11px; letter-spacing: 2px; margin-bottom: 0.7rem; }
+.mini-review .review-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 15.5px; font-style: italic;
+  color: var(--ink); line-height: 1.6; margin-bottom: 0.8rem;
+}
+.mini-review .review-author { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+
+/* Product closing CTA */
+.product-close-cta {
+  background: var(--dark);
+  padding: 4rem 3.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 2rem; flex-wrap: wrap;
+}
+.product-close-left { }
+.product-close-left .section-label { color: var(--warm); margin-bottom: 0.6rem; }
+.product-close-left p {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 300; color: var(--cream);
+  line-height: 1.2;
+}
+.product-close-left p em { font-style: italic; color: var(--warm); }
+
+/* ============================================================
+   PAGE HISTOIRE — EDITORIAL
+============================================================ */
+#page-histoire { background: var(--light); }
+
+.histoire-hero {
+  padding: 6rem 4rem 5rem;
+  max-width: 900px;
+  border-bottom: 0.5px solid var(--stone);
+}
+.histoire-hero .section-label { margin-bottom: 1.2rem; }
+.histoire-hero .histoire-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(38px, 6vw, 72px);
+  font-weight: 300; line-height: 1.04;
+  color: var(--dark);
+  margin-bottom: 1.4rem;
+}
+.histoire-hero .histoire-title em { font-style: italic; color: var(--brown); }
+
+.histoire-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem;
+  padding: 5rem 4rem;
+  align-items: start;
+}
+.histoire-img-col { }
+.histoire-img-wrap {
+  position: relative; background: var(--stone);
+  aspect-ratio: 1/1; overflow: hidden; border-radius: 2px;
+  cursor: pointer;
+}
+.histoire-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.7s; display: block; }
+.histoire-glow-l {
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 50% 38%, rgba(255,220,120,0.4) 0%, transparent 65%);
+  border-radius: 2px; pointer-events: none; transition: opacity 0.7s;
+}
+.histoire-overlay-l {
+  position: absolute; inset: 0;
+  background: rgba(20,16,12,0); border-radius: 2px;
+  pointer-events: none; transition: background 0.7s;
+}
+.histoire-badge-l {
+  position: absolute; bottom: -1.2rem; right: -1rem;
+  width: 96px; height: 96px;
+  background: var(--dark); color: var(--cream);
+  border-radius: 50%; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 11.5px; text-align: center; line-height: 1.35;
+  font-style: italic; z-index: 2;
+}
+.histoire-hint-l {
+  position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%);
+  background: rgba(243,237,229,0.88); color: var(--dark);
+  font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 20px;
+  pointer-events: none; z-index: 5; white-space: nowrap;
+}
+
+.histoire-text-col { }
+.histoire-text-col p {
+  color: var(--muted); margin-bottom: 1.2rem;
+  font-size: 14px; line-height: 1.9;
+}
+.histoire-text-col .pull-quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-style: italic; color: var(--brown);
+  font-weight: 300; line-height: 1.5;
+  padding: 1.8rem 0;
+  border-top: 0.5px solid rgba(44,31,20,0.12);
+  border-bottom: 0.5px solid rgba(44,31,20,0.12);
+  margin: 1.4rem 0 1.6rem;
+}
+.histoire-sig {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-style: italic; color: var(--warm);
+  margin-top: 2rem;
+}
+
+/* ============================================================
+   PAGE AVIS
+============================================================ */
+#page-avis { background: var(--dark); }
+
+.avis-top {
+  padding: 5rem 4rem 3rem;
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: end; gap: 3rem;
+  border-bottom: 0.5px solid rgba(196,168,130,0.12);
+}
+.avis-top .section-label { color: var(--warm); margin-bottom: 0.8rem; }
+.avis-top .section-title { color: var(--cream); }
+.avis-top .section-title em { font-style: italic; }
+.avis-aggregate {
+  text-align: center; flex-shrink: 0;
+}
+.avis-big-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 68px; font-weight: 300; color: var(--cream);
+  line-height: 1;
+}
+.avis-big-stars { color: var(--gold); font-size: 16px; letter-spacing: 3px; margin: 6px 0; }
+.avis-big-label { font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; color: rgba(243,237,229,0.3); }
+
+.avis-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 0.5px; background: rgba(196,168,130,0.1);
+  margin: 0 4rem 4rem;
+}
+.avis-card { background: var(--dark); padding: 2rem 1.8rem; }
+.avis-card:hover { background: rgba(255,255,255,0.02); }
+.avis-card .stars { color: var(--gold); font-size: 11px; letter-spacing: 3px; margin-bottom: 1rem; }
+.avis-card .avis-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17.5px; font-style: italic;
+  color: rgba(243,237,229,0.82); line-height: 1.65; margin-bottom: 1rem;
+}
+.avis-card .avis-author {
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: rgba(243,237,229,0.3);
+}
+.avis-card .avis-verified {
+  font-size: 9.5px; color: rgba(196,168,130,0.5); margin-top: 4px;
+  letter-spacing: 1px;
+}
+
+.avis-stats-bar {
+  display: flex; gap: 0;
+  border-top: 0.5px solid rgba(196,168,130,0.1);
+  margin: 0 4rem 0;
+}
+.avis-stat-item {
+  flex: 1; padding: 2.5rem 1rem; text-align: center;
+  border-right: 0.5px solid rgba(196,168,130,0.1);
+}
+.avis-stat-item:last-child { border-right: none; }
+.avis-stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 44px; font-weight: 300; color: var(--cream); line-height: 1;
+}
+.avis-stat-label {
+  font-size: 10px; color: rgba(243,237,229,0.3);
+  letter-spacing: 2px; text-transform: uppercase; margin-top: 6px;
+}
+
+/* ============================================================
+   PAGE CONTACT
+============================================================ */
+#page-contact { background: var(--light); }
+.contact-layout {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 6rem; padding: 5rem 4rem;
+  min-height: calc(100vh - var(--nav-h));
+  align-items: start;
+}
+.contact-left .section-label { margin-bottom: 0.8rem; }
+.contact-left .section-title { margin-bottom: 1.6rem; }
+.contact-left p { color: var(--muted); font-size: 14px; line-height: 1.8; margin-bottom: 2rem; }
+.contact-detail {
+  display: flex; align-items: flex-start; gap: 14px;
+  margin-bottom: 1.2rem; color: var(--muted); font-size: 13.5px;
+}
+.contact-icon {
+  width: 36px; height: 36px; background: var(--stone);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; flex-shrink: 0; border-radius: 2px;
+}
+.contact-detail-text div:first-child { font-size: 12px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+
+.contact-right { }
+.form-row { margin-bottom: 1.2rem; }
+.form-row label {
+  display: block; font-size: 9.5px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+}
+.form-row input, .form-row textarea, .form-row select {
+  width: 100%; background: var(--cream);
+  border: 0.5px solid var(--stone); padding: 12px 14px;
+  font-size: 14px; font-family: 'DM Sans', sans-serif;
+  color: var(--dark); outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none; border-radius: 0;
+}
+.form-row input:focus, .form-row textarea:focus, .form-row select:focus {
+  border-color: var(--warm);
+}
+.form-row textarea { height: 120px; resize: none; }
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-submit {
+  width: 100%; background: var(--dark); color: var(--cream);
+  border: none; padding: 14px;
+  font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif; cursor: pointer;
+  transition: background 0.2s;
+}
+.form-submit:hover { background: var(--brown); }
+.form-success {
+  display: none;
+  background: #EAF2EE; border: 0.5px solid #82C4A4;
+  color: #2A6B4A; padding: 12px; font-size: 13px;
+  margin-top: 0.8rem; text-align: center;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+footer {
+  background: var(--dark);
+  color: rgba(243,237,229,0.35);
+  padding: 2.5rem 4rem;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 2rem;
+  font-size: 11.5px;
+}
+.footer-logo { font-size: 16px; color: var(--cream); display: flex; align-items: center; gap: 5px; }
+.footer-logo-star { color: var(--warm); }
+.footer-center { text-align: center; line-height: 1.9; }
+.footer-right { text-align: right; }
+.footer-links { display: flex; gap: 1.4rem; justify-content: flex-end; }
+.footer-links a {
+  color: rgba(243,237,229,0.3); text-decoration: none;
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--cream); }
+
+/* ============================================================
+   MODAL
+============================================================ */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(24,16,9,0.7);
+  z-index: 600; align-items: center; justify-content: center; padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--cream); width: 100%; max-width: 460px;
+  padding: 2.5rem; position: relative;
+  animation: modalIn 0.3s cubic-bezier(.2,.9,.4,1);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+.modal-close {
+  position: absolute; top: 1rem; right: 1.2rem;
+  background: none; border: none; font-size: 22px;
+  cursor: pointer; color: var(--muted); line-height: 1;
+  transition: color 0.2s;
+}
+.modal-close:hover { color: var(--dark); }
+.modal-label { font-size: 9.5px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--warm); margin-bottom: 0.4rem; }
+.modal h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px; font-weight: 300; margin-bottom: 0.3rem;
+}
+.modal-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 2rem; }
+.qty-row {
+  display: flex; align-items: center; gap: 14px; margin-bottom: 1.6rem;
+  padding: 1rem; background: var(--light); border: 0.5px solid var(--stone);
+}
+.qty-label { font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); flex: 1; }
+.qty-btn {
+  width: 36px; height: 36px; background: var(--stone);
+  border: none; font-size: 20px; cursor: pointer; color: var(--dark);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.qty-btn:hover { background: var(--warm); }
+.qty-val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px; font-weight: 300; min-width: 30px; text-align: center;
+}
+#stripe-btn {
+  width: 100%; background: var(--dark); color: var(--cream);
+  padding: 16px; font-size: 10.5px; letter-spacing: 2.5px;
+  text-transform: uppercase; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background 0.2s;
+}
+#stripe-btn:hover { background: var(--brown); }
+.modal-secure {
+  font-size: 10.5px; color: var(--muted); margin-top: 0.8rem;
+  text-align: center; letter-spacing: 0.3px;
+}
+
+/* ============================================================
+   MOBILE STICKY BUY BAR
+============================================================ */
+.mobile-buy-bar {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--dark); z-index: 300;
+  padding: 0.9rem 1.2rem;
+  flex-direction: row; align-items: center;
+  gap: 1rem;
+  border-top: 0.5px solid rgba(196,168,130,0.2);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+.mobile-buy-bar.show { transform: translateY(0); }
+.mobile-buy-info { flex: 1; }
+.mobile-buy-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 300; color: var(--cream);
+}
+.mobile-buy-sub { font-size: 11px; color: rgba(243,237,229,0.4); }
+.mobile-buy-btn {
+  background: var(--cream); color: var(--dark);
+  padding: 12px 22px; font-size: 10.5px; letter-spacing: 2px;
+  text-transform: uppercase; border: none; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; flex-shrink: 0;
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--dark); color: var(--cream);
+  padding: 13px 26px; font-size: 13px; z-index: 700;
+  transition: transform 0.35s cubic-bezier(.2,.9,.4,1);
+  border-radius: 2px; white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ============================================================
+   MOBILE ≤ 768px
+============================================================ */
+@media (max-width: 768px) {
+  :root { --nav-h: 52px; }
+
+  .site-nav { padding: 0 0.8rem; }
+  .logo { font-size: 16px; }
+  .nav-tabs { justify-content: flex-start; }
+  .nav-tab { padding: 0 0.7rem; font-size: 9px; }
+  .nav-right { gap: 0.5rem; }
+  .nav-rating { display: none; }
+  .nav-cta { padding: 8px 14px; font-size: 9.5px; display: none; }
+
+  /* Accueil photo */
+  .home-caption { padding: 0 1.4rem 2.5rem; flex-direction: column; align-items: flex-start; gap: 1.2rem; }
+  .home-caption-right { text-align: left; }
+  .home-title { font-size: 30px; margin-bottom: 1.4rem; }
+  .home-actions { flex-direction: column; width: 100%; }
+  .btn-primary, .btn-outline, .btn-dark, .btn-outline-dark {
+    padding: 13px 20px; width: 100%; text-align: center;
+  }
+
+  /* Product */
+  .product-hero { grid-template-columns: 1fr; }
+  .product-img-col {
+    position: relative; top: auto;
+    height: 75vw; min-height: 280px;
+  }
+  .product-img-col img { width: 70%; }
+  .product-info-col { padding: 2rem 1.4rem; border-left: none; border-top: 0.5px solid var(--stone); }
+  .product-key-specs { grid-template-columns: 1fr 1fr 1fr; }
+  .product-extended { padding: 2.5rem 1.4rem; }
+  .full-specs-grid { grid-template-columns: 1fr; }
+  .spec-row { border-right: none; }
+  .spec-row.full { grid-column: 1; }
+  .mini-reviews-grid { grid-template-columns: 1fr; }
+  .product-close-cta { flex-direction: column; align-items: flex-start; }
+
+  /* Mobile buy bar */
+  .mobile-buy-bar { display: flex; }
+
+  /* Histoire */
+  .histoire-hero { padding: 3rem 1.4rem 2.5rem; }
+  .histoire-body { grid-template-columns: 1fr; padding: 2.5rem 1.4rem; gap: 3rem; }
+  .histoire-badge-l { right: 0; bottom: -0.8rem; width: 78px; height: 78px; font-size: 10px; }
+
+  /* Avis */
+  .avis-top { grid-template-columns: 1fr; padding: 3rem 1.4rem 2rem; }
+  .avis-grid { grid-template-columns: 1fr; margin: 0 1.4rem 3rem; }
+  .avis-stats-bar { flex-wrap: wrap; margin: 0 1.4rem; }
+  .avis-stat-item { min-width: 50%; }
+
+  /* Contact */
+  .contact-layout { grid-template-columns: 1fr; padding: 3rem 1.4rem; gap: 2.5rem; min-height: auto; }
+  .form-grid-2 { grid-template-columns: 1fr; }
+
+  /* Footer */
+  footer { grid-template-columns: 1fr; text-align: center; padding: 2rem 1.4rem; gap: 1rem; }
+  .footer-right { text-align: center; }
+  .footer-links { justify-content: center; }
+
+  .toast { width: 90%; left: 5%; transform: translateY(80px); text-align: center; }
+  .toast.show { transform: translateY(0); }
+
+  .section-title { font-size: 28px; }
+}
+
+@media (max-width: 440px) {
+  .hero-title { font-size: 28px; }
+  .product-key-specs { grid-template-columns: 1fr; }
+  .key-spec { border-right: none; border-bottom: 0.5px solid var(--stone); }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="site-nav" id="site-nav">
+  <div class="logo" onclick="goTo('accueil')">eklat <span class="logo-star">✦</span></div>
+  <ul class="nav-tabs">
+    <li><button class="nav-tab active" data-page="accueil"   onclick="goTo('accueil')">Accueil</button></li>
+    <li><button class="nav-tab" data-page="lampe"    onclick="goTo('lampe')">La lampe</button></li>
+    <li><button class="nav-tab" data-page="histoire" onclick="goTo('histoire')">Notre histoire</button></li>
+    <li><button class="nav-tab" data-page="avis"     onclick="goTo('avis')">Avis</button></li>
+    <li><button class="nav-tab" data-page="contact"  onclick="goTo('contact')">Contact</button></li>
+  </ul>
+  <div class="nav-right">
+    <span class="nav-rating"><strong>★★★★★</strong> &nbsp;5/5</span>
+    <button class="nav-cta" onclick="openModal()">Commander</button>
+  </div>
+</nav>
+
+<!-- ============================================================
+     PAGE ACCUEIL
+============================================================ -->
+<div class="page active" id="page-accueil">
+
+  <div class="home-screen">
+    <img class="home-bg" id="hero-img" src="hero.jpg" alt="Éklat Origine — Collection complète">
+    <div class="home-overlay"></div>
+    <div class="home-caption">
+      <div class="home-caption-left">
+        <span class="home-eyebrow">Collection Origine</span>
+        <h1 class="home-title">La lumière<br>qui <em>reste</em></h1>
+        <div class="home-actions">
+          <button class="btn-primary" onclick="goTo('lampe')">
+            Découvrir la lampe
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+          <button class="btn-outline" onclick="openModal()">Rejoindre la liste</button>
+        </div>
+      </div>
+      <div class="home-caption-right">
+        <span class="home-colors-label">Coloris disponibles</span>
+        <div class="home-colors-count">6</div>
+        <div class="home-colors-sub">teintes · Globe soufflé</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-accueil -->
+
+<!-- ============================================================
+     PAGE LAMPE
+============================================================ -->
+<div class="page" id="page-lampe">
+
+  <div class="product-hero">
+    <!-- Sticky image column -->
+    <div class="product-img-col" id="product-img-col" onclick="toggleLamp()">
+      <div class="p-glow-outer" id="p-glow-outer"></div>
+      <div class="p-glow-floor" id="p-glow-floor"></div>
+      <div class="p-dark-overlay" id="p-dark-overlay"></div>
+      <img id="lamp-img" src="product1.png" alt="Lampe Eklat Origine">
+      <div class="p-hint" id="p-hint">Toucher pour éteindre</div>
+    </div>
+
+    <!-- Product info -->
+    <div class="product-info-col">
+      <div class="product-rating">
+        <span class="stars">★★★★★</span>
+        <span class="rating-text" onclick="goTo('avis')">5/5 · 6 avis →</span>
+      </div>
+      <div class="product-name">Origine</div>
+      <div class="product-tagline">Résine travaillée · Globe soufflé à la main</div>
+
+      <div class="product-price-row">
+        <span class="product-price-label">Prix</span>
+        <span class="product-price-tbd">Annoncé prochainement</span>
+      </div>
+
+      <p class="product-short-desc">
+        Une silhouette épurée née d'une passion pour le design. La base en résine travaillée accueille un globe en verre soufflé qui diffuse une lumière à 3000K — chaude, enveloppante, sans câble. Chaque pièce est travaillée à la main.
+      </p>
+
+      <div class="product-key-specs">
+        <div class="key-spec">
+          <div class="ks-val">24h</div>
+          <div class="ks-label">Autonomie</div>
+        </div>
+        <div class="key-spec">
+          <div class="ks-val">3000K</div>
+          <div class="ks-label">Température</div>
+        </div>
+        <div class="key-spec">
+          <div class="ks-val">USB-C</div>
+          <div class="ks-label">Recharge</div>
+        </div>
+      </div>
+
+      <div class="product-cta-row">
+        <button class="btn-buy" id="checkout-btn" onclick="openModal()">
+          🔒 &nbsp;Rejoindre la liste d'attente
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <div class="product-guarantees">
+        <div class="guarantee-item">📦 Expédié en 3j</div>
+        <div class="guarantee-sep"></div>
+        <div class="guarantee-item">↩️ Retour 30j</div>
+        <div class="guarantee-sep"></div>
+        <div class="guarantee-item">🛡️ Garantie 2 ans</div>
+        <div class="guarantee-sep"></div>
+        <div class="guarantee-item">🔒 Paiement sécurisé</div>
+      </div>
+
+      <div class="secure-note">Stripe · Visa · Mastercard · Apple Pay · Google Pay</div>
+    </div>
+  </div>
+
+  <!-- Extended product content -->
+  <div class="product-extended">
+
+    <!-- Full specs -->
+    <span class="section-label">Fiche technique complète</span>
+    <div class="full-specs-grid" style="margin-top:1.4rem;">
+      <div class="spec-row"><div class="spec-label">Dimensions</div><div class="spec-val">Ø 15 cm · H 31 cm</div></div>
+      <div class="spec-row"><div class="spec-label">Matière</div><div class="spec-val">Résine + verre soufflé</div></div>
+      <div class="spec-row"><div class="spec-label">Température couleur</div><div class="spec-val">3 000 K fixe</div></div>
+      <div class="spec-row"><div class="spec-label">Recharge</div><div class="spec-val">USB-C · 5V 2A</div></div>
+      <div class="spec-row"><div class="spec-label">Autonomie</div><div class="spec-val">9h–24h selon intensité</div></div>
+      <div class="spec-row"><div class="spec-label">Garantie</div><div class="spec-val">2 ans pièces &amp; main-d'œuvre</div></div>
+      <div class="spec-row full">
+        <div class="spec-label" style="margin-bottom:6px;">Usage typique</div>
+        <div class="spec-val" style="font-size:13px;line-height:2;font-weight:400;">
+          2h/jour → <strong>12 jours</strong> avant recharge &nbsp;·&nbsp;
+          3h/jour → <strong>8 jours</strong> avant recharge
+        </div>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <span class="section-label" style="margin-top:3.5rem;display:block;">Questions fréquentes</span>
+    <div class="faq-list" style="margin-top:1.4rem;">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Quelle est l'autonomie réelle ? <span class="faq-icon">+</span></button>
+        <div class="faq-a">À intensité maximale, comptez environ 9 heures. À intensité réduite (usage courant en soirée), vous atteignez facilement 20 à 24 heures. La plupart de nos clients rechargent une fois par semaine.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Comment se recharge la lampe ? <span class="faq-icon">+</span></button>
+        <div class="faq-a">Via un câble USB-C standard (5V 2A). La recharge complète prend environ 3h. Pas besoin d'adaptateur spécifique — votre chargeur de téléphone convient.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">La lampe sera-t-elle disponible en plusieurs couleurs ? <span class="faq-icon">+</span></button>
+        <div class="faq-a">Oui. Plusieurs coloris de résine sont en cours de développement. Les premiers clients de la liste d'attente seront informés en avant-première des nouveaux coloris disponibles.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">Quelle est la politique de retour ? <span class="faq-icon">+</span></button>
+        <div class="faq-a">30 jours pour changer d'avis, sans condition. Si la lampe ne vous convient pas, nous organisons le retour et remboursons intégralement. Contactez-nous à gaspard.proacount@gmail.com.</div>
+      </div>
+    </div>
+
+    <!-- Mini reviews -->
+    <span class="section-label" style="margin-top:3.5rem;display:block;">Ce qu'ils en disent</span>
+    <div class="mini-reviews-grid" style="margin-top:1.4rem;">
+      <div class="mini-review">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">«&nbsp;On ne peut plus s'en passer. La lumière est exactement celle qu'on cherchait — chaude, douce, sans câble qui traîne.&nbsp;»</p>
+        <div class="review-author">Sophie M. · Paris</div>
+      </div>
+      <div class="mini-review">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">«&nbsp;Un cadeau de mariage parfait. L'emballage était sublime, et la lampe encore plus belle en vrai.&nbsp;»</p>
+        <div class="review-author">Thomas &amp; Léa · Lyon</div>
+      </div>
+      <div class="mini-review">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">«&nbsp;Mes collègues en visio me demandent tous d'où elle vient. Une vraie présence, une vraie qualité.&nbsp;»</p>
+        <div class="review-author">Marc D. · Bordeaux</div>
+      </div>
+    </div>
+    <div style="margin-top:1.2rem;">
+      <button class="btn-outline-dark" onclick="goTo('avis')" style="font-size:10.5px;">Voir tous les avis →</button>
+    </div>
+
+  </div>
+
+  <!-- Product closing CTA -->
+  <div class="product-close-cta">
+    <div class="product-close-left">
+      <span class="section-label">Premier lot limité</span>
+      <p style="margin-top:0.6rem;">Réservez la vôtre.<br><em>Expédiée en 3 jours.</em></p>
+    </div>
+    <button class="btn-primary" onclick="openModal()">Rejoindre la liste d'attente →</button>
+  </div>
+
+</div><!-- /page-lampe -->
+
+<!-- ============================================================
+     PAGE HISTOIRE
+============================================================ -->
+<div class="page" id="page-histoire">
+
+  <div class="histoire-hero">
+    <span class="section-label">Notre histoire</span>
+    <h1 class="histoire-title" style="margin-top:1rem;">L'histoire d'une lampe<br><em>et d'un rêve</em></h1>
+  </div>
+
+  <div class="histoire-body">
+    <div class="histoire-img-col">
+      <div class="histoire-img-wrap" onclick="toggleHistoireLamp()">
+        <img id="histoire-img" src="histoire.png" alt="Lampe Eklat Origine">
+        <div class="histoire-glow-l" id="histoire-glow"></div>
+        <div class="histoire-overlay-l" id="histoire-overlay"></div>
+        <div class="histoire-hint-l" id="histoire-hint">Toucher pour éteindre</div>
+        <div class="histoire-badge-l">Dessiné<br>&amp; imaginé<br>à Toulouse</div>
+      </div>
+    </div>
+
+    <div class="histoire-text-col">
+      <p>Éklat est née d'une conviction intime : la lumière n'est pas fonctionnelle, elle est émotionnelle.</p>
+      <p>À 16 ans, entre les études et une passion dévorante pour le design, j'ai pensé une question simple : pourquoi une lampe ne pourrait-elle pas être belle, utile et intemporelle ?</p>
+
+      <div class="pull-quote">
+        «&nbsp;C'est en dessinant tard le soir qu'Origine est née.&nbsp;»
+      </div>
+
+      <p>Une lampe sans prise, sans fil qui traîne — juste une base en résine travaillée, une silhouette épurée, et un globe soufflé à la main qui diffuse une lumière chaude à 3000K. Un objet pensé pour durer, pour vivre avec toi, pour devenir familier sans devenir banal.</p>
+      <p>Chaque couleur a été pensée pour raconter une histoire — celle de ceux qui veulent des objets qui signifient quelque chose. Pas une lampe de plus. Un compagnon de nuit. Un geste de design. Un début.</p>
+      <p>Origine a été fabriquée avec les mains expertes de vrais artisans. Rechargeable. Durable. Conçue pour les esprits qui refusent le jetable et cherchent plutôt ce qui dure.</p>
+      <p><em style="color:var(--warm);">Ce n'est pas un achat. C'est une rencontre.</em></p>
+      <div class="histoire-sig">— Gaspard Derville, fondateur</div>
+    </div>
+  </div>
+
+</div><!-- /page-histoire -->
+
+<!-- ============================================================
+     PAGE AVIS
+============================================================ -->
+<div class="page" id="page-avis">
+
+  <div class="avis-top">
+    <div>
+      <span class="section-label">Ils l'ont adoptée</span>
+      <h2 class="section-title" style="margin-top:0.8rem;">Ce qu'ils en <em>disent</em></h2>
+    </div>
+    <div class="avis-aggregate">
+      <div class="avis-big-num">5,0</div>
+      <div class="avis-big-stars">★★★★★</div>
+      <div class="avis-big-label">6 avis · 100% satisfaits</div>
+    </div>
+  </div>
+
+  <div class="avis-grid" style="margin-top:3rem;">
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p class="avis-text">«&nbsp;On ne peut plus s'en passer. La lumière est exactement celle qu'on cherchait — chaude, douce, sans câble qui traîne.&nbsp;»</p>
+      <div class="avis-author">Sophie M. · Paris</div>
+      <div class="avis-verified">✓ Achat vérifié</div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p class="avis-text">«&nbsp;Un cadeau de mariage parfait. L'emballage était sublime, et la lampe encore plus belle en vrai.&nbsp;»</p>
+      <div class="avis-author">Thomas &amp; Léa · Lyon</div>
+      <div class="avis-verified">✓ Achat vérifié</div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p class="avis-text">«&nbsp;Mes collègues en visio me demandent tous d'où elle vient. Une vraie présence, une vraie qualité.&nbsp;»</p>
+      <div class="avis-author">Marc D. · Bordeaux</div>
+      <div class="avis-verified">✓ Achat vérifié</div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p class="avis-text">«&nbsp;L'autonomie est impressionnante. Je la recharge une fois par semaine grand maximum.&nbsp;»</p>
+      <div class="avis-author">Clara V. · Nantes</div>
+      <div class="avis-verified">✓ Achat vérifié</div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p class="avis-text">«&nbsp;L'ambiance de notre salon est totalement transformée. On en commandera une deuxième.&nbsp;»</p>
+      <div class="avis-author">Antoine &amp; Julie · Marseille</div>
+      <div class="avis-verified">✓ Achat vérifié</div>
+    </div>
+    <div class="avis-card">
+      <div class="stars">★★★★★</div>
+      <p class="avis-text">«&nbsp;Reçue en 4 jours, emballage soigné, lampe parfaite. Le service client a répondu en moins d'une heure.&nbsp;»</p>
+      <div class="avis-author">Nathalie R. · Strasbourg</div>
+      <div class="avis-verified">✓ Achat vérifié</div>
+    </div>
+  </div>
+
+  <div class="avis-stats-bar">
+    <div class="avis-stat-item">
+      <div class="avis-stat-num">5,0</div>
+      <div class="avis-stat-label">Note moyenne</div>
+    </div>
+    <div class="avis-stat-item">
+      <div class="avis-stat-num">100%</div>
+      <div class="avis-stat-label">Clients satisfaits</div>
+    </div>
+    <div class="avis-stat-item">
+      <div class="avis-stat-num">&lt;24h</div>
+      <div class="avis-stat-label">Réponse support</div>
+    </div>
+    <div class="avis-stat-item">
+      <div class="avis-stat-num">3j</div>
+      <div class="avis-stat-label">Délai d'expédition</div>
+    </div>
+  </div>
+
+  <div style="padding:3.5rem 4rem; text-align:center; border-top:0.5px solid rgba(196,168,130,0.1);">
+    <button class="btn-primary" onclick="openModal()">Rejoindre la liste d'attente</button>
+  </div>
+
+</div><!-- /page-avis -->
+
+<!-- ============================================================
+     PAGE CONTACT
+============================================================ -->
+<div class="page" id="page-contact">
+  <div class="contact-layout">
+    <div class="contact-left">
+      <span class="section-label">Contact</span>
+      <h2 class="section-title" style="margin-top:0.8rem;">On vous<br><em>répond</em></h2>
+      <p>Une question sur la lampe, un projet B2B, un retour ? Réponse garantie sous 24h ouvrées.</p>
+      <div class="contact-detail">
+        <div class="contact-icon">✉</div>
+        <div class="contact-detail-text">
+          <div>Email</div>
+          <div>gaspard.proacount@gmail.com</div>
+        </div>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-icon">📍</div>
+        <div class="contact-detail-text">
+          <div>Basé à</div>
+          <div>Toulouse, France</div>
+        </div>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-icon">🏨</div>
+        <div class="contact-detail-text">
+          <div>Professionnels</div>
+          <div>Hôtels, restaurants, spas — tarifs dès 5 unités</div>
+        </div>
+      </div>
+    </div>
+    <div class="contact-right">
+      <div class="form-grid-2">
+        <div class="form-row"><label>Prénom</label><input type="text" id="f-prenom" placeholder="Marie"></div>
+        <div class="form-row"><label>Nom</label><input type="text" id="f-nom" placeholder="Dupont"></div>
+      </div>
+      <div class="form-row"><label>Email</label><input type="email" id="f-email" placeholder="marie@example.com"></div>
+      <div class="form-row">
+        <label>Objet</label>
+        <select id="f-objet">
+          <option value="">Choisir...</option>
+          <option>Question sur la lampe</option>
+          <option>Commande B2B</option>
+          <option>Suivi de commande</option>
+          <option>Retour / SAV</option>
+          <option>Autre</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Message</label><textarea id="f-message" placeholder="Votre message..."></textarea></div>
+      <button class="form-submit" onclick="sendContact()">Envoyer le message</button>
+      <div class="form-success" id="form-success">✓ Message envoyé — réponse sous 24h.</div>
+    </div>
+  </div>
+</div><!-- /page-contact -->
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">eklat <span class="footer-logo-star">✦</span></div>
+  <div class="footer-center">
+    <div>© 2025 Eklat · Toulouse, France</div>
+    <div style="margin-top:4px;">Paiement sécurisé par Stripe</div>
+  </div>
+  <div class="footer-right">
+    <div class="footer-links">
+      <a onclick="goTo('lampe')" href="#">La lampe</a>
+      <a onclick="goTo('contact')" href="#">Contact</a>
+      <a onclick="goTo('avis')" href="#">Avis</a>
+    </div>
+    <div style="margin-top:6px;font-size:10px;opacity:0.5;">★★★★★ &nbsp;5/5 · 6 avis</div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-label">Collection Origine</div>
+    <h3>Éklat Origine</h3>
+    <p class="modal-sub">Résine travaillée · Globe soufflé · Expédié en 3j · Garantie 2 ans</p>
+    <div class="qty-row">
+      <span class="qty-label">Quantité</span>
+      <button class="qty-btn" onclick="changeQty(-1)">−</button>
+      <span class="qty-val" id="qty-display">1</span>
+      <button class="qty-btn" onclick="changeQty(1)">+</button>
+    </div>
+    <button id="stripe-btn" onclick="redirectToStripe()">🔒 &nbsp;Rejoindre la liste d'attente</button>
+    <div class="modal-secure">Paiement chiffré SSL · Aucune donnée carte stockée · Retour 30j</div>
+  </div>
+</div>
+
+<!-- MOBILE STICKY BUY BAR -->
+<div class="mobile-buy-bar" id="mobile-buy-bar">
+  <div class="mobile-buy-info">
+    <div class="mobile-buy-name">Origine</div>
+    <div class="mobile-buy-sub">★★★★★ · Expédié en 3j</div>
+  </div>
+  <button class="mobile-buy-btn" onclick="openModal()">Commander</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- PAGE TRANSITION VEIL -->
+<div class="page-veil" id="page-veil"></div>
+
+<script>
+// =============================================================
+// SMART NAV (hide on scroll down, show on scroll up)
+// =============================================================
+var lastScroll = 0;
+var nav = document.getElementById('site-nav');
+window.addEventListener('scroll', function() {
+  var cur = window.scrollY;
+  if (cur > 100 && cur > lastScroll) {
+    nav.classList.add('nav-up');
+  } else {
+    nav.classList.remove('nav-up');
+  }
+  lastScroll = cur <= 0 ? 0 : cur;
+}, { passive: true });
+
+// =============================================================
+// PAGE NAVIGATION
+// =============================================================
+var veil = document.getElementById('page-veil');
+function goTo(pageId) {
+  veil.classList.add('show');
+  setTimeout(function() {
+    document.querySelectorAll('.page').forEach(function(p) {
+      p.style.display = 'none';
+      p.classList.remove('active');
+    });
+    var el = document.getElementById('page-' + pageId);
+    if (!el) { veil.classList.remove('show'); return; }
+    el.style.display = 'block';
+    el.classList.add('active');
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    document.querySelectorAll('.nav-tab').forEach(function(t) { t.classList.remove('active'); });
+    var tab = document.querySelector('[data-page="' + pageId + '"]');
+    if (tab) { tab.classList.add('active'); tab.scrollIntoView({ inline: 'center', behavior: 'instant' }); }
+    // re-trigger reveals for new page
+    setTimeout(function() {
+      initReveal();
+      veil.classList.remove('show');
+    }, 80);
+  }, 180);
+}
+
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.page').forEach(function(p) { p.style.display = 'none'; });
+  var acc = document.getElementById('page-accueil');
+  if (acc) { acc.style.display = 'block'; acc.classList.add('active'); }
+  initReveal();
+});
+
+// =============================================================
+// SCROLL REVEAL
+// =============================================================
+function initReveal() {
+  var items = document.querySelectorAll('.page.active .reveal');
+  if (!items.length) return;
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.12 });
+  items.forEach(function(el) {
+    el.classList.remove('visible');
+    io.observe(el);
+  });
+}
+
+// =============================================================
+// PRODUCT LAMP TOGGLE + CURSOR GLOW
+// =============================================================
+var lampOff = false;
+function toggleLamp() {
+  lampOff = !lampOff;
+  document.getElementById('lamp-img').style.filter          = lampOff ? 'brightness(0.35) saturate(0.2)' : '';
+  document.getElementById('p-glow-outer').style.opacity     = lampOff ? '0' : '1';
+  document.getElementById('p-glow-floor').style.opacity     = lampOff ? '0' : '1';
+  document.getElementById('p-dark-overlay').style.background= lampOff ? 'rgba(20,16,12,0.55)' : 'rgba(20,16,12,0)';
+  document.getElementById('p-hint').textContent             = lampOff ? 'Toucher pour allumer' : 'Toucher pour éteindre';
+}
+// Cursor-follow glow on product image
+var imgCol = document.getElementById('product-img-col');
+var glowOuter = document.getElementById('p-glow-outer');
+if (imgCol && glowOuter) {
+  imgCol.addEventListener('mousemove', function(e) {
+    if (lampOff) return;
+    var r = this.getBoundingClientRect();
+    var x = ((e.clientX - r.left) / r.width * 100).toFixed(1);
+    var y = ((e.clientY - r.top)  / r.height * 100).toFixed(1);
+    glowOuter.style.background = 'radial-gradient(circle at ' + x + '% ' + y + '%, rgba(255,220,120,0.55) 0%, rgba(255,180,60,0.15) 40%, transparent 68%)';
+  });
+  imgCol.addEventListener('mouseleave', function() {
+    if (lampOff) return;
+    glowOuter.style.background = 'radial-gradient(circle at 50% 38%, rgba(255,220,120,0.5) 0%, rgba(255,180,60,0.18) 40%, transparent 70%)';
+  });
+}
+
+// =============================================================
+// HISTOIRE LAMP TOGGLE
+// =============================================================
+var histoireOff = false;
+function toggleHistoireLamp() {
+  histoireOff = !histoireOff;
+  document.getElementById('histoire-img').style.filter       = histoireOff ? 'brightness(0.35) saturate(0.2)' : '';
+  document.getElementById('histoire-glow').style.opacity     = histoireOff ? '0' : '1';
+  document.getElementById('histoire-overlay').style.background= histoireOff ? 'rgba(20,16,12,0.55)' : 'rgba(20,16,12,0)';
+  document.getElementById('histoire-hint').textContent       = histoireOff ? 'Toucher pour allumer' : 'Toucher pour éteindre';
+}
+
+// =============================================================
+// MOBILE STICKY BUY BAR
+// =============================================================
+var mobileBar = document.getElementById('mobile-buy-bar');
+var checkoutBtn = document.getElementById('checkout-btn');
+function updateMobileBar() {
+  if (window.innerWidth > 768) { mobileBar.classList.remove('show'); return; }
+  if (!checkoutBtn) { mobileBar.classList.remove('show'); return; }
+  var rect = checkoutBtn.getBoundingClientRect();
+  if (rect.bottom < 0 || rect.top > window.innerHeight) {
+    mobileBar.classList.add('show');
+  } else {
+    mobileBar.classList.remove('show');
+  }
+}
+window.addEventListener('scroll', updateMobileBar, { passive: true });
+
+// =============================================================
+// FAQ ACCORDION
+// =============================================================
+function toggleFaq(btn) {
+  var item = btn.parentElement;
+  var isOpen = item.classList.contains('open');
+  document.querySelectorAll('.faq-item.open').forEach(function(i) { i.classList.remove('open'); });
+  if (!isOpen) item.classList.add('open');
+}
+
+// =============================================================
+// MODAL
+// =============================================================
+var qty = 1;
+function openModal()  { document.getElementById('modal').classList.add('open'); }
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+function changeQty(d) { qty = Math.max(1, Math.min(10, qty + d)); document.getElementById('qty-display').textContent = qty; }
+
+// =============================================================
+// STRIPE
+// =============================================================
+async function redirectToStripe() {
+  var btn = document.getElementById('stripe-btn');
+  btn.disabled = true; btn.textContent = 'Chargement...';
+  try {
+    var stripe = Stripe('pk_test_VOTRE_CLE_PUBLIQUE_ICI');
+    var result = await stripe.redirectToCheckout({
+      lineItems: [{ price: 'price_VOTRE_PRICE_ID_ICI', quantity: qty }],
+      mode: 'payment',
+      successUrl: window.location.origin + '?commande=confirmee',
+      cancelUrl: window.location.href,
+      locale: 'fr'
+    });
+    if (result.error) showToast('Erreur : ' + result.error.message);
+  } catch(e) {
+    showToast('Configurez vos clés Stripe pour activer le paiement.');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '🔒 &nbsp;Rejoindre la liste d\'attente';
+}
+
+// =============================================================
+// CONTACT FORM
+// =============================================================
+function sendContact() {
+  var p = document.getElementById('f-prenom').value.trim();
+  var e = document.getElementById('f-email').value.trim();
+  var m = document.getElementById('f-message').value.trim();
+  if (!p || !e || !m) { showToast('Merci de remplir prénom, email et message.'); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) { showToast('Email invalide.'); return; }
+  document.getElementById('form-success').style.display = 'block';
+  showToast('Message envoyé — réponse sous 24h.');
+}
+
+// =============================================================
+// TOAST
+// =============================================================
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function() { t.classList.remove('show'); }, 3500);
+}
+
+if (window.location.search.indexOf('commande=confirmee') !== -1)
+  setTimeout(function() { showToast('✓ Commande confirmée — merci !'); }, 800);
+</script>
+</body>
+</html>
