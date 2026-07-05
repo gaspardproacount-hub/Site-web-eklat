@@ -527,18 +527,12 @@ body {
 .histoire-img-wrap {
   position: relative; background: var(--stone);
   aspect-ratio: 1/1; overflow: hidden; border-radius: 2px;
-  cursor: pointer;
 }
-.histoire-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: filter 0.7s; display: block; }
+.histoire-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .histoire-glow-l {
   position: absolute; inset: 0;
   background: radial-gradient(circle at 50% 38%, rgba(255,220,120,0.4) 0%, transparent 65%);
-  border-radius: 2px; pointer-events: none; transition: opacity 0.7s;
-}
-.histoire-overlay-l {
-  position: absolute; inset: 0;
-  background: rgba(20,16,12,0); border-radius: 2px;
-  pointer-events: none; transition: background 0.7s;
+  border-radius: 2px; pointer-events: none;
 }
 .histoire-badge-l {
   position: absolute; bottom: -1.2rem; right: -1rem;
@@ -550,14 +544,6 @@ body {
   font-size: 11.5px; text-align: center; line-height: 1.35;
   font-style: italic; z-index: 2;
 }
-.histoire-hint-l {
-  position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%);
-  background: rgba(243,237,229,0.88); color: var(--dark);
-  font-size: 9.5px; letter-spacing: 2px; text-transform: uppercase;
-  padding: 5px 14px; border-radius: 20px;
-  pointer-events: none; z-index: 5; white-space: nowrap;
-}
-
 .histoire-text-col { }
 .histoire-text-col p {
   color: var(--muted); margin-bottom: 1.2rem;
@@ -1114,11 +1100,9 @@ footer {
 
   <div class="histoire-body">
     <div class="histoire-img-col">
-      <div class="histoire-img-wrap" onclick="toggleHistoireLamp()">
-        <img id="histoire-img" src="histoire.png" alt="Lampe Eklat Origine">
-        <div class="histoire-glow-l" id="histoire-glow"></div>
-        <div class="histoire-overlay-l" id="histoire-overlay"></div>
-        <div class="histoire-hint-l" id="histoire-hint">Toucher pour éteindre</div>
+      <div class="histoire-img-wrap">
+        <img id="histoire-img" src="croquis-histoire.png" alt="Croquis original de la lampe Eklat Origine">
+        <div class="histoire-glow-l"></div>
         <div class="histoire-badge-l">Dessiné<br>&amp; imaginé<br>à Toulouse</div>
       </div>
     </div>
@@ -1424,18 +1408,6 @@ if (imgCol && glowOuter) {
     if (lampOff) return;
     glowOuter.style.background = 'radial-gradient(circle at 50% 38%, rgba(255,220,120,0.5) 0%, rgba(255,180,60,0.18) 40%, transparent 70%)';
   });
-}
-
-// =============================================================
-// HISTOIRE LAMP TOGGLE
-// =============================================================
-var histoireOff = false;
-function toggleHistoireLamp() {
-  histoireOff = !histoireOff;
-  document.getElementById('histoire-img').style.filter       = histoireOff ? 'brightness(0.35) saturate(0.2)' : '';
-  document.getElementById('histoire-glow').style.opacity     = histoireOff ? '0' : '1';
-  document.getElementById('histoire-overlay').style.background= histoireOff ? 'rgba(20,16,12,0.55)' : 'rgba(20,16,12,0)';
-  document.getElementById('histoire-hint').textContent       = histoireOff ? 'Toucher pour allumer' : 'Toucher pour éteindre';
 }
 
 // =============================================================
